@@ -94,28 +94,25 @@ df_bellevue = pd.read_csv(url)
 
 
 
+
 def task_1():
     """
     Return a list of column names sorted by missing values.
     Tie-breaker: alphabetical order if missing counts are equal.
+    Only use the raw dataset columns.
     """
+    # Work on a copy so added columns (like 'year') don't interfere
+    df_copy = df_bellevue.copy()
 
-    # Fix messy 'gender' column
-    if "gender" in df_bellevue.columns:
-        df_bellevue["gender"] = df_bellevue["gender"].str.strip().str.capitalize()
+    # Clean 'gender' column
+    if "gender" in df_copy.columns:
+        df_copy["gender"] = df_copy["gender"].str.strip().str.capitalize()
         print("Note: Cleaned 'gender' column (removed spaces, capitalized values).")
 
-    # Count missing values per column
-    missing_counts = df_bellevue.isnull().sum()
+    # Count missing values
+    missing_counts = df_copy.isnull().sum()
 
-    # Sort by (missing count, column name)
-    sorted_columns = (
-        missing_counts.sort_values(kind="mergesort")
-        .sort_index()
-        .index.tolist()
-    )
-
-    # Correct tie-breaking: sort by (missing, colname)
+    # Sort by (missing count, column name alphabetically)
     sorted_columns = sorted(missing_counts.index, key=lambda col: (missing_counts[col], col))
 
     return sorted_columns
