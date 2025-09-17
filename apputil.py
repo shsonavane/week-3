@@ -97,10 +97,10 @@ df_bellevue = pd.read_csv(url)
 def task_1():
     """
     Return a list of column names sorted by missing values.
-    Columns with the least missing values come first.
+    Tie-breaker: alphabetical order if missing counts are equal.
     """
 
-    # Fix messy 'gender' column if needed
+    # Fix messy 'gender' column
     if "gender" in df_bellevue.columns:
         df_bellevue["gender"] = df_bellevue["gender"].str.strip().str.capitalize()
         print("Note: Cleaned 'gender' column (removed spaces, capitalized values).")
@@ -108,8 +108,15 @@ def task_1():
     # Count missing values per column
     missing_counts = df_bellevue.isnull().sum()
 
-    # Sort column names by missing values (ascending)
-    sorted_columns = missing_counts.sort_values().index.tolist()
+    # Sort by (missing count, column name)
+    sorted_columns = (
+        missing_counts.sort_values(kind="mergesort")
+        .sort_index()
+        .index.tolist()
+    )
+
+    # Correct tie-breaking: sort by (missing, colname)
+    sorted_columns = sorted(missing_counts.index, key=lambda col: (missing_counts[col], col))
 
     return sorted_columns
 
@@ -118,12 +125,15 @@ def task_2():
     """
     Return a DataFrame with two columns:
     - 'year': each year in the dataset
-    - 'total_admissions': number of immigrant admissions per year
+    - 'total_admissions': number of admissions per year
     """
 
-    if "year" not in df_bellevue.columns:
-        print("Warning: 'year' column missing in dataset.")
+    if "date_in" not in df_bellevue.columns:
+        print("Warning: 'date_in' column missing in dataset.")
         return pd.DataFrame()
+
+    # Extract year from date_in
+    df_bellevue["year"] = pd.to_datetime(df_bellevue["date_in"], errors="coerce").dt.year
 
     # Group by year and count rows
     admissions_per_year = (
@@ -133,6 +143,7 @@ def task_2():
     )
 
     return admissions_per_year
+
 
 
 def task_3():
